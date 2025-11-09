@@ -31,11 +31,11 @@ class Layers:
     def __init__(self, first_layer: BaseLayer, activation_function: str=None):
         self.layers = [first_layer]
         self.weights = []
-        self.activation_function = [activation_function if activation_function else None]
+        self.activation_function = [activation_function]
     
     def join_front(self, new_layer: BaseLayer, activation_function: str=None):
         if len(new_layer.shape) != len(self.layers[-1].shape):
-            raise ValueError("new layer shape doesn't match the previous layer!")
+            raise ValueError(f"new layer shape {new_layer.shape} doesn't match the previous layer {self.layers[-1].shape}!")
         self.layers.append(new_layer)
         self.weights.append(np.empty(shape=(new_layer.shape[0], self.layers[-1].shape[0])))
         self.activation_function.append(activation_function)
