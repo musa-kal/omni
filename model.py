@@ -53,9 +53,6 @@ class Layers:
         self.layers.append(layer)
         self.weights.append(np.empty(shape=(self.input_shape[0], layer.shape[0]), dtype=NP_FLOAT_PRECISION))
 
-
-
-    
     def join_front(self, new_layer: BaseLayer):
         if len(self.layers) == 0:
             self.__init_first_layer(new_layer)
