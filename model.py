@@ -10,24 +10,24 @@ class Neuron:
     def feedforward(self, z: float) -> float:
         return z + self.bias
 
-class BaseLayer:
-    def __init__(self):
-        self.shape = ()
-        self.name = None
-    
-    def __repr__(self):
-        return f"{self.name}-{self.shape}"
-
-class DenseLayer(BaseLayer):
-    def __init__(self, neuron_count:int=1):
-        if neuron_count < 1:
-            raise ValueError("neuron_count must be greater then 0!")
-        self.shape = tuple([neuron_count])
-        self.neurons = [Neuron() for _ in range(neuron_count)]
-        self.name = "Dense Layer"
-    
 
 class Layers:
+    class BaseLayer:
+        def __init__(self):
+            self.shape = ()
+            self.name = None
+        
+        def __repr__(self):
+            return f"{self.name}-{self.shape}"
+
+    class DenseLayer(BaseLayer):
+        def __init__(self, neuron_count:int=1):
+            if neuron_count < 1:
+                raise ValueError("neuron_count must be greater then 0!")
+            self.shape = tuple([neuron_count])
+            self.neurons = [Neuron() for _ in range(neuron_count)]
+            self.name = "Dense Layer"
+
     def __init__(self, first_layer: BaseLayer, activation_function: str=None):
         self.layers = [first_layer]
         self.weights = []
@@ -52,7 +52,7 @@ class Layers:
 
 
 if __name__ == '__main__':
-    x = Layers(DenseLayer(1))
-    x.join_front(DenseLayer(3))
+    x = Layers(Layers.DenseLayer(1))
+    x.join_front(Layers.DenseLayer(3))
     print(x)
     pass
