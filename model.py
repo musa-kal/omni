@@ -28,39 +28,36 @@ class Layers:
             return f"{self.name}-{self.shape}"
 
     class DenseLayer(BaseLayer):
-        def __init__(self, neuron_count:int=1, activation_function:str|None=None):
+        def __init__(self, neuron_count:int=1, activation_function:str|None=None, input_shape:tuple=(1,)):
             if neuron_count < 1:
                 raise ValueError("neuron_count must be greater then 0!")
             self.shape = tuple([neuron_count])
             self.neurons = np.empty(shape=(neuron_count), dtype=NP_FLOAT_PRECISION) # neuron biases stored as np array
             self.name = "Dense Layer"
             self.activation_function = activation_function
+            self.weights = np.empty(shape=(input_shape[0], neuron_count), dtype=NP_FLOAT_PRECISION) # weights represented as 2nd numpy array rows representing the previous neuron index and column current
         
         def feedforward(self, input_array):
-            z = input_array + self.neurons
+            z = np.dot(self.weights, input_array) + self.neurons
             if self.activation_function:
                 z = self.activation_function(z)
             return z
 
     def __init__(self, input_shape:tuple):
-        self.input_shape = tuple(input_shape)
-        self.layers = []
-        self.weights = []
-
-    def __init_first_layer(self, layer:BaseLayer):
-        if len(layer.shape) != len(self.input_shape):
-            raise ValueError(f"new layer shape {layer.shape} doesn't match the input shape {self.input_shape}!")
-        self.layers.append(layer)
-        self.weights.append(np.empty(shape=(self.input_shape[0], layer.shape[0]), dtype=NP_FLOAT_PRECISION))
+        self.input_shape = input_shape
+        self.layers = []        
 
     def join_front(self, new_layer: BaseLayer):
+
         if len(self.layers) == 0:
-            self.__init_first_layer(new_layer)
+            if len(new_layer.shape) != len(self.input_shape):
+                raise ValueError(f"new layer shape {new_layer.shape} doesn't match the input shape {self.input_shape}!")
+            self.layers.append(new_layer)
             return
+        
         if len(new_layer.shape) != len(self.layers[-1].shape):
             raise ValueError(f"new layer shape {new_layer.shape} doesn't match the previous layer {self.layers[-1].shape}!")
         self.layers.append(new_layer)
-        self.weights.append(np.empty(shape=(new_layer.shape[0], self.layers[-1].shape[0]), dtype=NP_FLOAT_PRECISION))
 
     def feedforward(self, input_data):
         if input_data.shape != self.input_shape:
@@ -83,9 +80,10 @@ class Layers:
 
 
 if __name__ == '__main__':
+    print(np.dot([[3,2],[2,2]], [1,2]))
     input = Layers.DenseLayer(1)
     print(input.feedforward([1]))
-    x = Layers(input_shape=[1])
+    x = Layers(input_shape=(1,))
     x.join_front(Layers.DenseLayer(3))
     print(x)
     pass
