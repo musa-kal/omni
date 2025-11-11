@@ -38,19 +38,19 @@ class Layers:
             self.neurons = np.empty(shape=(neuron_count), dtype=NP_FLOAT_PRECISION) # neuron biases stored as np array
             self.name = "Dense Layer"
             self.activation_function = activation_function
-            self.weights = np.empty(shape=(input_shape[0], neuron_count), dtype=NP_FLOAT_PRECISION) # weights represented as 2nd numpy array rows representing the previous neuron index and column current
+            self.weights = np.empty(shape=(neuron_count, input_shape[0]), dtype=NP_FLOAT_PRECISION) # weights represented as 2nd numpy array rows representing the current layer neuron index and column previous inputs
             self.pre_activation = None
             self.post_activation = None
             self.prev_input = None
         
         def feedforward(self, input_array, save=False):
             print(input_array)
-            if input_array.shape[0] != self.weights.shape[0]:
+            if input_array.shape[0] != self.weights.shape[1]:
                 raise ValueError(f"Input array shape {input_array.shape} doesn't match the shape of the layers weights shape {self.weights.shape}")
             
             self.prev_input = input_array
             
-            z = np.dot(self.weights.T, input_array) + self.neurons
+            z = np.dot(self.weights, input_array) + self.neurons
 
             if save:
                 self.pre_activation = z.copy()
@@ -71,6 +71,8 @@ class Layers:
 
             if self.activation_function:
                 activation_function_derivatives = self.activation_function.derivative(self.post_activation)
+
+            
             
 
             
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     input = Layers.DenseLayer(1)
     x = Layers(input_shape=(2,))
     l = Layers.DenseLayer(3)
-    l.weights=np.array([[1,2,-3],[1,1,1]])
+    l.weights=np.array([[1,1],[2,1],[1,-1]])
     x.join_front(l)
     print(x.feedforward(np.array([1,2])))
     pass
