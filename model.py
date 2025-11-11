@@ -66,13 +66,18 @@ class Layers:
             if lose_derivatives.shape != self.shape:
                 raise ValueError(f"lose_derivatives {lose_derivatives.shape} doesn't equal current layer shape {self.shape}")
             
-            activation_function_derivatives = np.ones(shape=self.shape, dtype=NP_FLOAT_PRECISION)
 
             if self.activation_function:
                 activation_function_derivatives = self.activation_function.derivative(self.post_activation)
+            else:
+                activation_function_derivatives = np.ones(shape=self.shape, dtype=NP_FLOAT_PRECISION)
+            
+            dL_dz = activation_function_derivatives * lose_derivatives
 
-            
-            
+            dz_dw = np.tile(self.prev_input, (self.shape[0],1))
+
+            # ∂L/∂a(L-1), ∂L/∂w, ∂L/∂b
+            return np.dot(self.weights.T, dL_dz), dz_dw.T * dL_dz, dL_dz
 
             
         def clear_all_saves(self):
@@ -125,6 +130,15 @@ class Layers:
 
 
 if __name__ == '__main__':
+    x = np.array([
+        [1,3],
+        [2,1],
+        [1,3]
+    ])
+    y = np.array(
+        [1,2,3]
+    )
+    print(np.dot(x.T,y))
     input = Layers.DenseLayer(1)
     x = Layers(input_shape=(2,))
     l = Layers.DenseLayer(3)
