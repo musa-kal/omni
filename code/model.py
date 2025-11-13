@@ -157,8 +157,17 @@ class Layers:
         
         return next_input
 
-    def propagate_backwards(self, layer_outputs):
-        pass
+    def propagate_backwards(self, layer_output):
+        
+        layer_derivate = []
+        next_input = layer_output
+
+        for layer in self.layers[::-1]:
+            output = layer.feedbackwards(next_input)
+            layer_derivate.append(output)
+            next_input = output[0]
+
+        return layer_derivate[::-1]
 
     def __repr__(self):
         """
