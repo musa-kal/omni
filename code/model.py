@@ -59,7 +59,7 @@ class Layers:
             if neuron_count < 1:
                 raise ValueError("neuron_count must be greater then 0!")
             self.shape = (neuron_count,)
-            self.neurons = np.empty(shape=(neuron_count), dtype=NP_FLOAT_PRECISION) # neuron biases stored as np array
+            self.neurons = np.zeros(shape=(neuron_count), dtype=NP_FLOAT_PRECISION) # neuron biases stored as np array
             self.name = "Dense Layer"
             self.activation_function = activation_function
             self.weights = np.empty(shape=(neuron_count, input_shape[0]), dtype=NP_FLOAT_PRECISION) # weights represented as 2nd numpy array rows representing the current layer neuron index and column previous inputs
@@ -196,7 +196,6 @@ if __name__ == '__main__':
     x = Layers(input_shape=(1,))
     l = Layers.DenseLayer(3)
     l.weights=np.array([[1.0],[0.0],[-1.0]], dtype=NP_FLOAT_PRECISION)
-    l.neurons=np.zeros(shape=(3), dtype=NP_FLOAT_PRECISION)
     x.join_front(l)
     alp = 0.001
     
