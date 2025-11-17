@@ -195,7 +195,8 @@ if __name__ == '__main__':
     # print(np.dot(x.T,y))
     x = Layers(input_shape=(1,))
     l = Layers.DenseLayer(3)
-    l.weights=np.array([[1],[0],[-1]])
+    l.weights=np.array([[1.0],[0.0],[-1.0]], dtype=NP_FLOAT_PRECISION)
+    l.neurons=np.zeros(shape=(3), dtype=NP_FLOAT_PRECISION)
     x.join_front(l)
     alp = 0.001
     
