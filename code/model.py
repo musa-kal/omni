@@ -121,9 +121,9 @@ class Layers:
             
 
             if self.activation_function:
-                activation_function_derivatives = self.activation_function.derivative(self.post_activation)
+                activation_function_derivatives = self.activation_function.derivative(self.pre_activation)
             else:
-                activation_function_derivatives = np.ones(shape=self.shape, dtype=NP_FLOAT_PRECISION)
+                activation_function_derivatives = 1
                         
             dL_dz = activation_function_derivatives * lose_derivatives
 
@@ -212,8 +212,8 @@ if __name__ == '__main__':
     # print(ActivationFunctions.Relu.apply(x))
     # print(ActivationFunctions.Relu().derivative(x))
     x = Layers(input_shape=(1,))
-    l = Layers.DenseLayer(3, ActivationFunctions.Relu)
-    l.weights=np.array([[1.0],[0.0],[-1.0]], dtype=NP_FLOAT_PRECISION)
+    l = Layers.DenseLayer(3)
+    l.weights=np.array([[1],[0],[-1]], dtype=NP_FLOAT_PRECISION)
     x.join_front(l)
     alp = 0.001
     
