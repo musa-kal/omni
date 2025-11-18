@@ -52,7 +52,7 @@ class ActivationFunctions:
         
         @staticmethod
         def calculate_dl_dz(dl_da, saved):
-            return ActivationFunctions.Relu(saved.pre_activation) * dl_da
+            return ActivationFunctions.Relu.derivative(saved.pre_activation) * dl_da
     
     class Softmax(BaseActivationFunction):
 
