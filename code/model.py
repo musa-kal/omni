@@ -27,15 +27,15 @@ class ActivationFunctions:
         
         @staticmethod
         def apply(z: npt.NDArray):
-            raise NotImplemented(f"apply must be implemented in child class!")
+            raise NotImplementedError(f"apply must be implemented in child class!")
         
         @staticmethod
         def derivative(z: npt.NDArray):
-            raise NotImplemented(f"derivative must be implemented in child class!")
+            raise NotImplementedError(f"derivative must be implemented in child class!")
         
         @staticmethod
         def calculate_dl_dz(dl_da: npt.NDArray, saved: LayerSave):
-            raise NotImplemented(f"calculate_dl_dz must be implemented in child class!")
+            raise NotImplementedError(f"calculate_dl_dz must be implemented in child class!")
 
 
     class Relu(BaseActivationFunction):
@@ -234,12 +234,36 @@ class Layers:
         return output.strip() + "]"
     
 class Model:
+    
+    class LoseFunction:
+        name = "Base Lose Function"
+        
+        @staticmethod
+        def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
+            raise NotImplementedError("apply must be implemented in child class!")
+        
+        @staticmethod
+        def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
+            raise NotImplementedError("derivative must be implemented in child class!")
+        
+    class MSE(LoseFunction):
+        name = "MSE"
+        
+        @staticmethod
+        def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
+            return (y-_y)**2
+        
+        @staticmethod
+        def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
+            raise 2*(y-_y)
+        
+    
     def __init__(self, layers: Layers):
         self.layers = layers
-        self.alpha = 0.0
+        self.alpha = 0
         self.loss_function = None
     
-    def compile(self, alpha=0.001, lose_function='mse'):
+    def compile(self, alpha=0.001, lose_function=MSE):
         self.alpha = alpha
         self.loss_function = lose_function
         pass
