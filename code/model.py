@@ -87,10 +87,18 @@ class Layers:
         """
         Base Layer class used to create different types of hidden layers
         """
+        
+        
+        
         def __init__(self):
             self.shape = ()
             self.name = None
             self.saved = None
+            
+            def save_function(prev_save: LayerSave, prev_input: npt.ArrayLike, pre_activation: npt.ArrayLike, post_activation: npt.ArrayLike):
+                return LayerSave(prev_input, pre_activation, post_activation)
+                
+            self.save_function = save_function
 
 
         def feedforward(self, input_array: npt.NDArray):
@@ -127,6 +135,7 @@ class Layers:
         def __init__(self, neuron_count:int=1, activation_function:ActivationFunctions.BaseActivationFunction|None=None, input_shape:tuple=(1,)):
             if neuron_count < 1:
                 raise ValueError("neuron_count must be greater then 0!")
+            super().__init__()
             self.shape = (neuron_count,)
             self.biases = np.zeros(shape=(neuron_count), dtype=NP_FLOAT_PRECISION) # neuron biases stored as np array
             self.name = "Dense Layer"
@@ -152,7 +161,7 @@ class Layers:
                 a = self.activation_function.apply(z)
 
             if save:
-                self.saved = LayerSave(input_array, z.copy(), a.copy())
+                self.saved = self.save_function(self.saved, input_array, z.copy(), a.copy())
 
             return a
         
