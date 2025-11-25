@@ -260,11 +260,22 @@ class Model:
         
         @staticmethod
         def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
-            return (y-_y)**2
+            return np.sum((y-_y)**2)
         
         @staticmethod
         def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
-            raise 2*(y-_y)
+            return 2*(y-_y)
+        
+    class CrossEntropy(LoseFunction):
+        name = "Cross Entropy"
+        
+        @staticmethod
+        def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
+            return -y*np.log(y)
+        
+        @staticmethod
+        def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
+            return -y/_y
         
     
     def __init__(self, layers: Layers):
