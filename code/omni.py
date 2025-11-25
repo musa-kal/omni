@@ -307,8 +307,6 @@ class Model:
     def compile(self, alpha=0.001, loss_function=MSE):
         self.alpha = alpha
         self.loss_function = loss_function
-        print(self.loss_function.name)
-        pass
     
     def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, batch_size=1, epoch=1):
         n = len(X)
@@ -348,9 +346,6 @@ class Model:
             print(f"Epoch #{curr_itr} - total loss: {t_loss}")
                 
                 
-                    
-                    
-    
     def predict(self, X: npt.ArrayLike):
         return self.layers.feedforward(X)
         
