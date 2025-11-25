@@ -120,6 +120,10 @@ class Layers:
             """
             self.saved = None
         
+        def adjust_parameters(self, gradients):
+            raise NotImplementedError(f"adjust_parameters must be implemented in the child class {self.name}!")
+ 
+        
 
         def __repr__(self):
             """
@@ -182,7 +186,19 @@ class Layers:
             dz_dw = np.tile(self.saved.prev_input, (self.shape[0],1))
 
             # ∂L/∂a(L-1), ∂L/∂w, ∂L/∂b
-            return np.dot(self.weights.T, dL_dz), dz_dw.T * dL_dz, dL_dz
+            return np.dot(self.weights.T, dL_dz), (dz_dw.T * dL_dz).T, dL_dz
+
+        def adjust_parameters(self, gradients: list[npt.DTypeLike]):
+            if len(gradients) != 2:
+                raise ValueError(f"gradients are of {len(gradients)} should be of length 2 for {self.name} formatted as [weights_gradient, biases_gradient]")
+            if gradients[0].shape != self.weights.shape:
+                raise ValueError(f"shape for weights gradients {gradients[0].shape} should be same as weights shape {self.weights.shape}")
+            if gradients[1].shape != self.biases.shape:
+                raise ValueError(f"shape for biases gradients {gradients[1].shape} should be same as weights shape {self.biases.shape}")
+            self.weights -= gradients[0]
+            self.biases -= gradients[1]
+
+
 
 
 
@@ -228,10 +244,15 @@ class Layers:
 
         for layer in self.layers[::-1]:
             output = layer.feedbackwards(next_input)
-            layer_derivate.append(output)
+            layer_derivate.append([output[1], output[2]])
             next_input = output[0]
 
         return layer_derivate[::-1]
+    
+    def adjust_layer_parameter(self, i:int, gradients:list[npt.NDArray]):
+        if i < 0 or i > len(self.layers):
+            raise ValueError(f"i must be with in range ({0},{len(self.layers)}]")
+        self.layers[i].adjust_parameters(gradients) 
 
     def __repr__(self):
         """
@@ -271,7 +292,7 @@ class Model:
         
         @staticmethod
         def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
-            return -y*np.log(y)
+            return -np.sum(y*np.log(_y))
         
         @staticmethod
         def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
@@ -283,13 +304,52 @@ class Model:
         self.alpha = 0
         self.loss_function = None
     
-    def compile(self, alpha=0.001, lose_function=MSE):
+    def compile(self, alpha=0.001, loss_function=MSE):
         self.alpha = alpha
-        self.loss_function = lose_function
+        self.loss_function = loss_function
+        print(self.loss_function.name)
         pass
     
-    def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, batch_size=10, epoch=10):
-        pass
+    def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, batch_size=1, epoch=1):
+        n = len(X)
+        
+        for curr_itr in range(epoch):
+            idxs = np.random.permutation(n)
+            shuffled_X = X[idxs]
+            shuffled_y = y[idxs]
+            t_loss = 0
+            
+            for batch_group_i in range(0, n, batch_size):
+                X_batch = shuffled_X[batch_group_i: batch_group_i+batch_size]
+                y_batch = shuffled_y[batch_group_i: batch_group_i+batch_size]
+                
+                grad_sum = None
+                
+                for batch_i in range(batch_size):
+                    input_X = X_batch[batch_i]
+                    expected_y = y_batch[batch_i]
+                    
+                    predicted_y = self.layers.feedforward(input_data=input_X, save=True)
+                    t_loss += self.loss_function.apply(expected_y, predicted_y)
+                    grads = self.layers.propagate_backwards(self.loss_function.derivative(expected_y, predicted_y))
+                    
+                    if grad_sum:
+                        for grad_i, grad in enumerate(grads):
+                            for grad_j in range(len(grad)):
+                                grad_sum[grad_i][grad_j] += grad[grad_j]
+                    else:
+                        grad_sum = grads
+                
+                for grad_sum_i, curr_grad_sum in enumerate(grad_sum):
+                    for grad_sum_j in range(len(curr_grad_sum)):
+                        grad_sum[grad_sum_i][grad_sum_j] = curr_grad_sum[grad_sum_j] / batch_size * self.alpha
+                    self.layers.adjust_layer_parameter(grad_sum_i, grad_sum[grad_sum_i])
+                
+            print(f"Epoch #{curr_itr} - total loss: {t_loss}")
+                
+                
+                    
+                    
     
     def predict(self, X: npt.ArrayLike):
         return self.layers.feedforward(X)
@@ -321,10 +381,19 @@ if __name__ == '__main__':
     y = np.array([0,1,0], dtype=NP_FLOAT_PRECISION)
     print(_y)
     loss = -y/_y
+    loss_2 = output-y
+    print(loss_2)
     print(loss)
     print("===")
     out = x.propagate_backwards(loss)
     for e in out[0]:
         print(e)
+        
+    print("===model==")
+    
+    model = Model(x)
+    model.compile(loss_function=model.CrossEntropy)
+    model.fit(np.array([[2.3514]]), np.array([[0,1,0]]), epoch=10000)
+    print(model.predict(np.array([2.3514])))
     
     pass
