@@ -195,8 +195,15 @@ class Layers:
                 raise ValueError(f"shape for weights gradients {gradients[0].shape} should be same as weights shape {self.weights.shape}")
             if gradients[1].shape != self.biases.shape:
                 raise ValueError(f"shape for biases gradients {gradients[1].shape} should be same as weights shape {self.biases.shape}")
-            self.weights -= gradients[0]
-            self.biases -= gradients[1]
+            
+            self.weights -= gradients[0].astype(NP_FLOAT_PRECISION)
+            self.biases -= gradients[1].astype(NP_FLOAT_PRECISION)
+
+            if not np.all(np.isfinite(self.weights)):
+                raise ValueError("NaN or Inf detected in weights of layer pass")
+            if not np.all(np.isfinite(self.biases)):
+                print(self.biases)
+                raise ValueError("NaN or Inf detected in biases of layer pass")
 
 
 
@@ -281,11 +288,11 @@ class Model:
         
         @staticmethod
         def apply(y: npt.ArrayLike, _y: npt.ArrayLike):
-            return np.sum((y-_y)**2)
+            return np.sum((_y-y)**2)
         
         @staticmethod
         def derivative(y: npt.ArrayLike, _y: npt.ArrayLike):
-            return 2*(y-_y)
+            return 2*(_y-y)
         
     class CrossEntropy(LoseFunction):
         name = "Cross Entropy"
@@ -311,6 +318,9 @@ class Model:
     def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, batch_size=1, epoch=1):
         n = len(X)
         
+        if n != len(y):
+            raise ValueError(f"size of y {len(y)} should be same as X {n}")
+        
         for curr_itr in range(epoch):
             idxs = np.random.permutation(n)
             shuffled_X = X[idxs]
@@ -323,11 +333,13 @@ class Model:
                 
                 grad_sum = None
                 
-                for batch_i in range(batch_size):
-                    input_X = X_batch[batch_i]
-                    expected_y = y_batch[batch_i]
-                    
+                for input_X, expected_y in zip(X_batch, y_batch):
+                                        
                     predicted_y = self.layers.feedforward(input_data=input_X, save=True)
+                    
+                    if expected_y.shape != predicted_y.shape:
+                        raise ValueError(f"value in provided y has a shape of {expected_y.shape} which doesn't match the output shape of {predicted_y.shape}")
+                    
                     t_loss += self.loss_function.apply(expected_y, predicted_y)
                     grads = self.layers.propagate_backwards(self.loss_function.derivative(expected_y, predicted_y))
                     
@@ -386,9 +398,21 @@ if __name__ == '__main__':
         
     print("===model==")
     
+    np.random.seed(42)
+    X = 2 * np.random.rand(100, 1)
+    y = 4 + 3 * X #+ np.random.randn(100, 1)
+    print(X[0])
+    
+    x = Layers(input_shape=(1,))
+    l = Layers.DenseLayer(1)
+    l.weights = np.array([[-0.29900735]])
+    l.biases = np.array([00.08704707])
+    x.join_front(l)
     model = Model(x)
-    model.compile(loss_function=model.CrossEntropy)
-    model.fit(np.array([[2.3514]]), np.array([[0,1,0]]), epoch=10000)
+    model.compile(loss_function=model.MSE, alpha=0.1)
+    model.fit(X, y, epoch=1)
     print(model.predict(np.array([2.3514])))
+    print(model.layers.layers[0].weights, model.layers.layers[0].biases)
+    
     
     pass
