@@ -14,7 +14,7 @@ class LayerSave:
         self.post_activation = post_activation
 
     def __repr__(self):
-        return f"pre_input: {self.prev_input}\npre_activation: {self.pre_activation}\post_activation: {self.post_activation}"
+        return f"pre_input: {self.prev_input}\npre_activation: {self.pre_activation}\npost_activation: {self.post_activation}"
 
 class ActivationFunctions:
     """
