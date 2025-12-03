@@ -378,7 +378,7 @@ if __name__ == '__main__':
     
     # np.random.seed(12)
     X = 2 * np.random.rand(100, 1)
-    y = 100 * (X - 1) ** 3 + np.random.randn(100, 1)
+    y = 100 * (X - 1) ** 2 + np.random.randn(100, 1)
     
     x = Layers(input_shape=(1,))
     x.join_front(Layers.DenseLayer(64, ActivationFunctions.Relu))
@@ -427,7 +427,7 @@ if __name__ == '__main__':
 
     
     import matplotlib.pyplot as plt
-    plt.scatter(X, y, color='blue', label='Data points')
+    plt.scatter(X, y, color='blue', label='Data Points: 100 * (X - 1) ** 2 + ε')
     plt.scatter(X, tuple(model.predict(x) for x in X), color='red', label='Omni fit line')
     plt.scatter(X, tuple(tmodel.predict(x) for x in X), color='green', label='TF fit line')
     plt.xlabel('X')
